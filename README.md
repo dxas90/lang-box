@@ -1,12 +1,17 @@
-<p align="center">
-  <img width="400" src="./example.png">
-  <h3 align="center">lang-box</h3>
-  <p align="center">💻 Update a pinned gist to contain languages of your recent commits in GitHub</p>
-</p>
+# lang-box
+
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)
+![Node.js](https://img.shields.io/badge/Node.js-24-green)
+![pnpm](https://img.shields.io/badge/pnpm-10-orange)
+
+💻 Update a pinned gist to contain languages of your recent commits in GitHub
+
+![Example](./example.png)
 
 ---
 
-> This project is inspired by [waka-box](https://github.com/matchai/waka-box), [productive-box](https://github.com/maxam2017/productive-box) and [metrics](https://github.com/lowlighter/metrics).<br/>
+> This project is inspired by [waka-box](https://github.com/matchai/waka-box), [productive-box](https://github.com/maxam2017/productive-box) and [metrics](https://github.com/lowlighter/metrics).
+>
 > 📌✨ For more pinned-gist projects like this one, check out: <https://github.com/matchai/awesome-pinned-gists>
 
 This project gets your recent commits from your activities fetched from GitHub API, and process them with [linguist](https://github.com/github/linguist) to show the percentage of each languages used. This project also calculate how many lines of codes were added/removed per language.
@@ -15,8 +20,8 @@ This project gets your recent commits from your activities fetched from GitHub A
 
 ### Prep work
 
-1. Create a new public GitHub Gist (<https://gist.github.com/>)
-1. Create a token with the `gist` scope and copy it. (<https://github.com/settings/tokens/new>)
+1. Create a new public GitHub Gist: <https://gist.github.com/>
+2. Create a token with the `gist` scope and copy it: <https://github.com/settings/tokens/new>
 
    - And if you would like to include commits in private repos, also add `repo` scope.
 

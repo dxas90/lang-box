@@ -61,19 +61,30 @@ const main = async (): Promise<void> => {
     for (let page = 0; page < pages; page++) {
       // Fetch push events for the user
       const allEvents = await api.fetchEvents(config.username, PER_PAGE, page);
+      
+      console.log(`Page ${page + 1}: Total events = ${allEvents.length}`);
+      if (allEvents.length > 0) {
+        const eventTypes = allEvents.reduce((acc, e) => {
+          acc[e.type || 'null'] = (acc[e.type || 'null'] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        console.log(`  Event types:`, eventTypes);
+      }
 
       // Filter for push events by the user
       const pushEvents = allEvents.filter(
         (event): event is GitHubEvent & { payload: { commits: Array<{ sha: string; distinct: boolean }> } } =>
           isPushEvent(event) && event.actor.login === config.username
       );
+      
+      console.log(`  Push events by ${config.username} = ${pushEvents.length}`);
 
       const recentPushEvents = pushEvents.filter(
         (event) => event.created_at && new Date(event.created_at) > fromDate
       );
 
       const isEnd = recentPushEvents.length < pushEvents.length;
-      console.log(`Fetched ${recentPushEvents.length} events from page ${page + 1}`);
+      console.log(`  Recent push events (last ${config.days} days) = ${recentPushEvents.length}`);
 
       // Fetch commit details for each push event
       const commitPromises = recentPushEvents.flatMap((event) =>
