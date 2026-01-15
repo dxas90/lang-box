@@ -18,18 +18,42 @@ export class ApiClient {
 
   /**
    * Fetch user events from GitHub API
+   * Uses authenticated endpoint to include private repo events if token has repo scope
    */
   async fetchEvents(username: string, perPage: number = 100, page: number = 0): Promise<GitHubEvent[]> {
     try {
-      const { data } = await this.octokit.rest.activity.listPublicEventsForUser({
+      // Use REST API directly to match original behavior
+      // This endpoint returns events for the authenticated user if username matches
+      const { data } = await this.octokit.request('GET /users/{username}/events', {
         username,
         per_page: perPage,
         page,
+        headers: {
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
       });
       // Octokit returns a compatible structure
       return data as unknown as GitHubEvent[];
     } catch (error) {
       throw new Error(`Failed to fetch events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Fetch repository events to get commit details
+   * This endpoint includes full commit information in PushEvent payloads
+   */
+  async fetchRepoEvents(owner: string, repo: string, perPage: number = 100, page: number = 0): Promise<GitHubEvent[]> {
+    try {
+      const { data } = await this.octokit.request('GET /repos/{owner}/{repo}/events', {
+        owner,
+        repo,
+        per_page: perPage,
+        page,
+      });
+      return data as unknown as GitHubEvent[];
+    } catch (error) {
+      throw new Error(`Failed to fetch repo events: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

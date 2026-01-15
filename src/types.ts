@@ -68,10 +68,13 @@ export interface GitHubEvent {
     name: string;
   };
   payload: {
-    commits?: Array<{
-      sha: string;
-      distinct: boolean;
-    }>;
+    // Note: /users/{username}/events returns limited payload
+    // commits array is only present in authenticated /events endpoint
+    repository_id?: number;
+    push_id?: number;
+    ref?: string;
+    head?: string;
+    before?: string;
     // Other event payloads are ignored
     [key: string]: unknown;
   };
@@ -79,12 +82,28 @@ export interface GitHubEvent {
 }
 
 /**
- * Type guard for PushEvent
+ * GitHub Event with full commit details (from /repos/{owner}/{repo}/events)
  */
-export function isPushEvent(event: GitHubEvent): event is GitHubEvent & {
-  payload: { commits: Array<{ sha: string; distinct: boolean }> };
-} {
-  return event.type === 'PushEvent' && Array.isArray(event.payload.commits);
+export interface GitHubPushEvent extends GitHubEvent {
+  payload: {
+    commits: Array<{
+      sha: string;
+      distinct: boolean;
+    }>;
+    ref: string;
+    head: string;
+    before: string;
+    repository_id?: number;
+    push_id?: number;
+    [key: string]: unknown;
+  };
+}
+
+/**
+ * Type guard for PushEvent (simplified - just checks type)
+ */
+export function isPushEvent(event: GitHubEvent): event is GitHubPushEvent {
+  return event.type === 'PushEvent';
 }
 
 export interface GitHubGist {

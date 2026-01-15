@@ -8,8 +8,7 @@
 import { ApiClient } from './api.js';
 import { createContent } from './text.js';
 import { runLinguist } from './linguist.js';
-import type { ProcessedFile, GitHubEvent } from './types.js';
-import { isPushEvent } from './types.js';
+import type { ProcessedFile } from './types.js';
 
 /**
  * Load configuration from environment variables
@@ -61,51 +60,40 @@ const main = async (): Promise<void> => {
     for (let page = 0; page < pages; page++) {
       // Fetch push events for the user
       const allEvents = await api.fetchEvents(config.username, PER_PAGE, page);
-      
-      console.log(`Page ${page + 1}: Total events = ${allEvents.length}`);
-      if (allEvents.length > 0) {
-        const eventTypes = allEvents.reduce((acc, e) => {
-          acc[e.type || 'null'] = (acc[e.type || 'null'] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
-        console.log(`  Event types:`, eventTypes);
-      }
 
       // Filter for push events by the user
       const pushEvents = allEvents.filter(
-        (event): event is GitHubEvent & { payload: { commits: Array<{ sha: string; distinct: boolean }> } } =>
-          isPushEvent(event) && event.actor.login === config.username
+        (event) =>
+          event.type === 'PushEvent' &&
+          event.actor.login.toLowerCase() === config.username.toLowerCase()
       );
-      
-      console.log(`  Push events by ${config.username} = ${pushEvents.length}`);
 
       const recentPushEvents = pushEvents.filter(
         (event) => event.created_at && new Date(event.created_at) > fromDate
       );
 
+      console.log(`${recentPushEvents.length} events fetched from page ${page + 1}.`);
+
       const isEnd = recentPushEvents.length < pushEvents.length;
-      console.log(`  Recent push events (last ${config.days} days) = ${recentPushEvents.length}`);
 
-      // Fetch commit details for each push event
-      const commitPromises = recentPushEvents.flatMap((event) =>
-        event.payload.commits
-          // Ignore duplicated commits
-          .filter((c) => c.distinct === true)
-          .map((c) => {
-            const [owner, repo] = event.repo.name.split('/');
-            return api.fetchCommit(owner, repo, c.sha);
-          })
-      );
+      // Fetch commit details using the head SHA from each push event
+      // Events API doesn't include commits array, only head SHA
+      for (const event of recentPushEvents) {
+        try {
+          const [owner, repo] = event.repo.name.split('/');
+          const headSha = event.payload.head;
 
-      const results = await Promise.allSettled(commitPromises);
+          if (!headSha) {
+            console.log(`  Skipping push event for ${event.repo.name}: no head SHA`);
+            continue;
+          }
 
-      commits.push(
-        ...results
-          .filter((result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof api.fetchCommit>>> =>
-            result.status === 'fulfilled'
-          )
-          .map((result) => result.value)
-      );
+          const commit = await api.fetchCommit(owner, repo, headSha);
+          commits.push(commit);
+        } catch (error) {
+          console.log(`  Failed to fetch commit for ${event.repo.name}:`, error instanceof Error ? error.message : error);
+        }
+      }
 
       if (isEnd) {
         break;
@@ -136,6 +124,12 @@ const main = async (): Promise<void> => {
   // Run linguist analysis
   const langs = await runLinguist(files);
   console.log('');
+
+  if (langs.length === 0) {
+    console.log('No languages detected. Skipping gist update.');
+    console.log('This usually means no commits were found in the specified time period.');
+    return;
+  }
 
   langs.forEach((l) =>
     console.log(
