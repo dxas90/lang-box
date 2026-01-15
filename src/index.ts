@@ -145,7 +145,7 @@ const main = async (): Promise<void> => {
 
   // Update gist
   const gist = await api.fetchGist(config.gistId);
-  const filename = Object.keys(gist.files)[0];
+  const filename = Object.keys(gist.files)[0] || 'lang-box.txt';
 
   await api.updateGist(config.gistId, filename, content);
 
