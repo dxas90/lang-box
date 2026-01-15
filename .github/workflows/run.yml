@@ -1,4 +1,4 @@
-name: update gist
+name: Update Gist
 
 on:
   schedule:
@@ -9,20 +9,36 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "lts/*"
-          cache: "npm"
+          node-version: "24"
+          cache: "pnpm"
 
-      - run: sudo apt-get update
-      - run: sudo apt-get install cmake pkg-config libicu-dev zlib1g-dev libcurl4-openssl-dev libssl-dev ruby-dev
-      - run: sudo gem install github-linguist
-      - run: npm ci
-      - run: npm start
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake pkg-config libicu-dev zlib1g-dev libcurl4-openssl-dev libssl-dev ruby-dev
+
+      - name: Install github-linguist
+        run: sudo gem install github-linguist
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build TypeScript
+        run: pnpm build
+
+      - name: Run lang-box
+        run: pnpm start
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GIST_ID: 5a784ccd327291192d8b9b8db92f9145
           USERNAME: ${{ github.repository_owner }}
+          DAYS: 14

@@ -1,1 +1,48 @@
-node_modules
+node_modules/
+dist/
+*.log
+.env
+.DS_Store
+coverage/
+*.d.ts.map
+licenses.txt
+.linguist-tmp/
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables
+.env
+.env.test
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+._*
+Thumbs.db
+
+# Misc
+*.pem
+*-deploy-key

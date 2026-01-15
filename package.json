@@ -1,24 +1,45 @@
 {
   "name": "lang-box",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "💻 Update a pinned gist to contain languages of your recent commits in GitHub",
-  "main": "src/index.js",
   "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
-    "start": "node --experimental-modules --es-module-specifier-resolution=node src/index"
+    "dev": "tsx src/index.ts",
+    "build": "tsc && ncc build dist/index.js -o dist --source-map --license licenses.txt && rm -rf dist/*.d.ts dist/*.map dist/lib dist/types.js",
+    "start": "node dist/index.js",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
-    "node-fetch": "^3.2.10"
+    "@octokit/rest": "^21.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@vercel/ncc": "^0.38.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/inokawa/lang-box.git"
+    "url": "git+https://github.com/dxas90/lang-box.git"
   },
-  "keywords": [],
-  "author": "inokawa <stratoooo-taster@yahoo.co.jp> (https://github.com/inokawa/)",
+  "keywords": [
+    "github",
+    "gist",
+    "profile",
+    "languages",
+    "linguist",
+    "typescript"
+  ],
+  "author": "dxas90 <dxas90+github@gmail.com> (https://github.com/dxas90/)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/inokawa/lang-box/issues"
+    "url": "https://github.com/dxas90/lang-box/issues"
   },
-  "homepage": "https://github.com/inokawa/lang-box#readme"
+  "homepage": "https://github.com/dxas90/lang-box#readme"
 }
